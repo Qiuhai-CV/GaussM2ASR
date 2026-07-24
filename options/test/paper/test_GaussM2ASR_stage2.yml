@@ -1,0 +1,97 @@
+name: GaussM2ASR_stage2
+model_type: GaussM2ASRModel
+scale: 4
+num_gpu: 1  # set num_gpu: 0 for cpu mode
+manual_seed: 0
+
+tile_size: 48
+tile_overlap: 8
+tile_process: False  ### Set it to False unless the scaling factor is 2
+crop_size: 4
+denominator: 8
+
+default_step_size: 1.2
+cuda_rendering: True
+mode: 'scale_modify'
+
+if_dmax: True
+dmax_mode: 'fix'
+dmax: 0.1
+
+datasets:
+  test_1:  # the 1st test dataset
+    name: BraTS_test_x4
+    type: ContinuousBicubicDownsampleDataset
+    all_gt_list: ['datasets/BraTS/test/HR']
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    lr_size: 64
+    gt_size: 256
+    use_hflip: False
+    use_rot: False
+    sample_size: 0 #48*48, set to 0 for full GT image input
+    scale_list: [4, 4]
+# network structures
+network_g:
+  type: GaussM2ASRNet
+  num_in_ch: 1
+  num_feat: 64
+  num_block: 16
+  res_scale: 1.0
+
+  channel: 180
+  num_heads: 6
+  num_crossattn_blocks: 1
+  num_crossattn_layers: 3
+  num_selfattn_blocks: 5
+  num_selfattn_layers: 5
+  num_gs_seed: 64
+  gs_up_factor: 1.0
+  window_size: 8
+  img_range: 1.0
+  shuffle_scale1: 2
+  shuffle_scale2: 2
+
+network_fea2gs:
+  type: AnatomyGuidedGaussianParametrizer
+  channel: 180
+  num_gs_seed: 64
+  num_colors: 3
+  gs_up_factor: 1.0
+  window_size: 8
+
+# path
+path:
+  # Set this to the released GaussM2ASR reconstruction-network checkpoint.
+  pretrain_network_g: ~
+  strict_load_g: True
+  param_key_g: params_ema
+
+path_fea2gs:
+  # Set this to the released GaussM2ASR AGGP checkpoint.
+  pretrain_network_fea2gs: ~
+  strict_load_fea2gs: True
+  param_key_fea2gs: params_ema
+
+# validation settings
+val:
+  save_img: True
+  suffix: 'GaussM2ASR'  # add suffix to saved images, if None, use exp name
+
+  metrics:
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 0
+      test_y_channel: False
+    ssim:
+      type: calculate_ssim
+      crop_border: 0
+      test_y_channel: False
+#    lpips:
+#      type: calculate_lpips
+#      crop_border: 0
+#    dists:
+#      type: calculate_dists
+#      crop_border: 0

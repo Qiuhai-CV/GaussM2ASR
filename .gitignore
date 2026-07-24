@@ -1,0 +1,28 @@
+# Python caches and compiled extensions
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.dll
+*.lib
+*.exp
+*.o
+
+# Local build products
+/build/
+/basicsr/utils/gs_cuda/build/
+/basicsr/utils/gs_cuda_dmax/build/
+
+# Experiment outputs and large local assets
+/experiments/
+/results/
+/tb_logger/
+/wandb/
+/datasets/
+/pretrained_models/
+profile.log
+
+# Editor-specific local files
+/.vscode/
+/debug/
+.idea/
